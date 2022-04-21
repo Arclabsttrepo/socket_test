@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 #server
+
 from platform import node
 import socket
 import threading
