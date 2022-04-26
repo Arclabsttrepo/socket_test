@@ -1,56 +1,38 @@
 import json
+import time
 
-#def conversion(jason)
-    
-destination = "client2"
+#destination = "client2"
 
-sample= '''
-{
-    "velocity":
-    {
-    "type":"int32",
-    "data":25
-    }
-    
-}
-'''
+#message = [[False, True],["stringy","test"]]
+currenttime = time.monotonic_ns()
 
-sample2 = '''
+print(currenttime)
+time.sleep(10)
+currenttime = time.monotonic_ns()
+print(currenttime)
 
-    
-    {
-    "type":"int32",
-    "data":0
-    }
+def Conversion_To_Json(destination,msg):
+    temp ={}
+    temp.update({"key": destination})
+    temp.update({"msg": msg})
+    temp.update({"timestamp": currenttime})
+    temp.update({"type": str(type(msg))})
+    newstring = json.dumps(temp)
+    #print(newstring)
+    return(newstring)
 
 
-'''
+#realmsg=conversiontojson(destination,message)
+#PLEASE=(json.loads(json.loads(realmsg)))
 
 
-testing = json.dumps(sample2)
-testing2 = json.loads(json.loads(testing))
+def Json_To_Dict(jason):
+    newdict = json.loads(jason)
+    return newdict
 
-print(testing2)
-print(testing)
-#for value in test2['velocity']:
- #   print(value['type'])
+#convert= jsontodict(realmsg)
+#sendto = convert['msg']
+#dest=convert['type']
+#print(convert)
+#print(convert['msg'][1][0])
 
-
-
-
-
-x = 5.56
-
-#convert(test2)
-
-
-testing2['data'] = x + 7.53
-
-#print(type(test2['data']))
-#print(test2['data'])
-teststring = json.dumps(testing2)
-
-
-
-
-#def jsontostring(test2):
