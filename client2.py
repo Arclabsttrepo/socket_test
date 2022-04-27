@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
 # client
 import socket
 import time
 import threading
+import pdb
+import conversion
 
 # define constants:
 HEADER = 64
@@ -24,7 +27,7 @@ except ConnectionRefusedError:
     print("[QUITTING]")
     quit()
 
-# lock object needed to manage access to sockets receving
+# lock object needed to manage access to sockets receiving
 # so far only used for receiving as no other thread is sending
 # only the main thread is sending
 lock = threading.Lock()
@@ -41,13 +44,14 @@ finally:
 '''
 
 
-def Send_string_to_watchdog(msg):
-    message = msg.encode(FORMAT)
-    msg_length = len(message)
+def Send_string_to_watchdog(destination,msg):
+    message_string = conversion.Conversion_To_Json(destination,msg)
+    message_utf = message_string.encode(FORMAT)
+    msg_length = len(message_utf)
     send_length = str(msg_length).encode(FORMAT)
     send_length += b' ' * (HEADER - len(send_length))
     client.send(send_length)
-    client.send(message)
+    client.send(message_utf)
     print("[SENDING TO WATCHDOG] " + msg)
 
 
@@ -60,10 +64,33 @@ def Receive_string_from_watchdog():
             received_msg_length = int(received_msg_length)
             received_msg = client.recv(received_msg_length).decode(FORMAT)
             print("[WATCHDOG SAID] " + received_msg)
+            received_msg_dict=conversion.Json_To_Dict(received_msg)
             loopUntilMessageReceived = False
-            return received_msg
+            return received_msg_dict
 
 
+
+# outgoing message handler:
+def Push_to_node(node_name, msg2):
+    # send command to server plus node to send message to
+
+    Send_string_to_watchdog(node_name, msg2)
+    '''
+    try:
+        # pdb.set_trace()
+        #Send_string_to_watchdog("push:"+msg2)
+        Send_string_to_watchdog("push", node_name, msg2)
+        #temp = Receive_string_from_watchdog()
+        #if temp == "node_found_push_the_data":
+
+        #    Send_string_to_watchdog(msg2)
+            # print(Receive_string_from_watchdog())
+        #else:
+        #    print(f"[{NODE_NAME}] says: Pushing to {node_name} failed!")
+    except AttributeError:
+        print("Incorrect data type sent, recheck")
+        quit()
+    '''
 
 
 
@@ -74,20 +101,25 @@ def Main():
     # process robotic algorthm here
     # compute stuff here
     x = 0
+    #Push_to_node("client2", "Hello yeah")
     while True:
         # update variables at the start of every loop
-        # topic varaibles and node messages
-        # use receive_string_from_watchdog()
-        print(Receive_string_from_watchdog())
+        # topic variables and node messages
+        # use Receive_string_from_watchdog()
 
-        time.sleep(15)
+        #Push_to_node("client2", str(x))
+        x = x + 1
+        #Push_to_node("client2", str(x))
+        Receive_string_from_watchdog()
+        time.sleep(5)
 
 
-Send_string_to_watchdog("name:" + NODE_NAME)
+
+Send_string_to_watchdog("watchdog",NODE_NAME)
 
 try:
     Main()
 except KeyboardInterrupt:
-    Send_string_to_watchdog(DISCONNECT_MESSAGE)
+    Send_string_to_watchdog("watchdog", DISCONNECT_MESSAGE)
 
-Send_string_to_watchdog(DISCONNECT_MESSAGE)
+Send_string_to_watchdog("watchdog", DISCONNECT_MESSAGE)
