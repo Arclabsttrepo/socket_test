@@ -49,17 +49,18 @@ def Send_string_to_client(sent_from_node, conn, msg):
 
 
 def Receive_string_from_client(conn):
-    loopUntilMessageReceived = True
+    
     received_msg_length = conn.recv(HEADER).decode(FORMAT)
     # in the event that the socket sends something blank:
-    while loopUntilMessageReceived:
-        if received_msg_length:
-            received_msg_length = int(received_msg_length)
-            received_msg = conn.recv(received_msg_length).decode(FORMAT)
-            print("[CLIENT SAID] " + received_msg)
-            received_msg_dict=conversion.Json_To_Dict(received_msg)
-            loopUntilMessageReceived = False
-            return received_msg_dict
+   
+    if received_msg_length:
+        received_msg_length = int(received_msg_length)
+        received_msg = conn.recv(received_msg_length).decode(FORMAT)
+        print("[CLIENT SAID] " + received_msg)
+        received_msg_dict=conversion.Json_To_Dict(received_msg)
+        return received_msg_dict
+    else:
+        return "other connection closed"
 
 
 def Push(conn, msg, node_name):

@@ -56,17 +56,18 @@ def Send_string_to_watchdog(destination,msg):
 
 
 def Receive_string_from_watchdog():
-    loopUntilMessageReceived = True
+
     received_msg_length = client.recv(HEADER).decode(FORMAT)
     # in the event that the socket sends something blank:
-    while loopUntilMessageReceived:
-        if received_msg_length:
-            received_msg_length = int(received_msg_length)
-            received_msg = client.recv(received_msg_length).decode(FORMAT)
-            print("[WATCHDOG SAID] " + received_msg)
-            received_msg_dict=conversion.Json_To_Dict(received_msg)
-            loopUntilMessageReceived = False
-            return received_msg_dict
+
+    if received_msg_length:
+        received_msg_length = int(received_msg_length)
+        received_msg = client.recv(received_msg_length).decode(FORMAT)
+        print("[WATCHDOG SAID] " + received_msg)
+        received_msg_dict=conversion.Json_To_Dict(received_msg)
+        return received_msg_dict
+    else:
+        return "other connection closed"
 
 
 
@@ -110,8 +111,10 @@ def Main():
         #Push_to_node("client2", str(x))
         x = x + 1
         #Push_to_node("client2", str(x))
+
         Receive_string_from_watchdog()
         time.sleep(5)
+        Push_to_node("client1", "Greetings from client2")
 
 
 
