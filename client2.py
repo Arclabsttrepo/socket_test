@@ -52,7 +52,7 @@ def Send_string_to_watchdog(destination,msg):
     send_length += b' ' * (HEADER - len(send_length))
     client.send(send_length)
     client.send(message_utf)
-    print("[SENDING TO WATCHDOG] " + msg)
+    print("[SENDING TO WATCHDOG] " + str(msg))
 
 
 def Receive_string_from_watchdog():
@@ -63,7 +63,7 @@ def Receive_string_from_watchdog():
     if received_msg_length:
         received_msg_length = int(received_msg_length)
         received_msg = client.recv(received_msg_length).decode(FORMAT)
-        print("[WATCHDOG SAID] " + received_msg)
+        print("[WATCHDOG SAID] " + str(received_msg))
         received_msg_dict=conversion.Json_To_Dict(received_msg)
         return received_msg_dict
     else:

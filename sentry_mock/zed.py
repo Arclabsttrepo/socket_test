@@ -13,9 +13,9 @@ SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
-NODE_NAME = "client1"
+NODE_NAME = "zed"
 
-received_from_node = ""
+
 
 # create client socket object
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -30,7 +30,7 @@ except ConnectionRefusedError:
 # lock object needed to manage access to sockets receiving
 # so far only used for receiving as no other thread is sending
 # only the main thread is sending
-lock = threading.Lock()
+#lock = threading.Lock()
 '''
 #using lock with context manager:
 with lock:
@@ -101,6 +101,8 @@ def Main():
     # run main code here
     # process robotic algorthm here
     # compute stuff here
+    z = 0.1
+    y = 0.2
     x = 0
     
     while True:
@@ -109,18 +111,22 @@ def Main():
         # use Receive_string_from_watchdog()
 
         #Push_to_node("client2", str(x))
-        x = x + 1
+        z = z + 0.2
+        y = y + 0.1
         #Push_to_node("client2", str(x))
 
-        Push_to_node("client2", "Hello from client1")
+        Push_to_node("explore", [z,y])
         time.sleep(1)
-        Receive_string_from_watchdog()
+        x = x + 1
+        print(x)
+        #Receive_string_from_watchdog()
 
 
 
-Send_string_to_watchdog("watchdog",NODE_NAME)
+
 
 try:
+    Send_string_to_watchdog("watchdog",NODE_NAME)
     Main()
 except KeyboardInterrupt:
     Send_string_to_watchdog("watchdog", DISCONNECT_MESSAGE)
