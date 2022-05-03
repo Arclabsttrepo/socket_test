@@ -16,7 +16,18 @@ FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 NODE_NAME = "explore"
 
+odometry = []
+zed = []
 
+odometryTemp = []
+zedTemp = []
+
+variableList=[odometry, zed]
+#put in the same order as above
+variableNameListTemp = ["odometry", "zed"]
+
+#put in the same order as above
+variableListTemp=[odometryTemp, zedTemp]
 
 # create client socket object
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,7 +42,7 @@ except ConnectionRefusedError:
 # lock object needed to manage access to sockets receiving
 # so far only used for receiving as no other thread is sending
 # only the main thread is sending
-#lock = threading.Lock()
+lock = threading.Lock()
 '''
 #using lock with context manager:
 with lock:
@@ -64,7 +75,7 @@ def Receive_string_from_watchdog():
     if received_msg_length:
         received_msg_length = int(received_msg_length)
         received_msg = client.recv(received_msg_length).decode(FORMAT)
-        print("[WATCHDOG SAID] " + str(received_msg))
+        #print("[WATCHDOG SAID] " + str(received_msg))
         received_msg_dict=conversion.Json_To_Dict(received_msg)
         return received_msg_dict
     else:
@@ -94,8 +105,54 @@ def Push_to_node(node_name, msg2):
         quit()
     '''
 
+def Incoming_messages_handler(variableNameListTemp, variableListTemp, client):
+    while True:
+        
+        received_message_dict = Receive_string_from_watchdog()
+        
+        #look for names of variabes in received msg to store its value
+        for variableIndex in range(len(variableNameListTemp)):
+            #if variable found in the received message
+            
+            if received_message_dict['key']==variableNameListTemp[variableIndex]:
+                #store it in the corresponding variable
+                with lock:
+                    variableListTemp[variableIndex]=received_message_dict['msg']
+                    #print(received_message_dict['msg'])
+                #print(str(variableList[variable_index]))
 
 
+
+
+        '''
+        #is there new data in the receive buffer?
+        socket_buffer_readable, _, _ = select.select([client],[],[],0) #what to do with algortihm that needs data if this doesn't get any?????
+        print(socket_buffer_readable)
+        #if yes:
+        while socket_buffer_readable:
+            
+            received_message_dict = Receive_string_from_watchdog()
+            #look for names of variabes in received msg to store its value
+            for variableIndex in range(len(variableNameListTemp)):
+                #if variable found in the received message
+                
+                if received_message_dict['key']==variableNameListTemp[variableIndex]:
+                    #store it in the corresponding variable
+                    with lock:
+                        variableListTemp[variableIndex]=received_message_dict['msg']
+                    #print(str(variableList[variable_index]))
+
+            
+            if temp['key']=="odometry":
+                print(temp['msg'])
+            elif temp['key']=="zed":
+                print(temp['msg'])                   
+             
+            
+
+            #check again so you can loop until you get ALL the items in the buffer
+            socket_buffer_readable, _, _ = select.select([client],[],[],0)    
+        '''
 
 
 def Main():
@@ -111,6 +168,16 @@ def Main():
         # use Receive_string_from_watchdog()
 
         #update variables here
+
+        with lock:
+            for variableIndex in range(len(variableList)):
+                variableList[variableIndex] = variableListTemp[variableIndex]
+    
+        for variableIndex in range(len(variableList)):
+            print(variableList[variableIndex])
+            print("test")
+
+        '''
         #is there new data in the receive buffer?
         socket_buffer_readable, _, _ = select.select([client],[],[],0) #what to do with algortihm that needs data if this doesn't get any?????
         
@@ -119,6 +186,7 @@ def Main():
             Receive_string_from_watchdog()
             #check again so you can loop until you get ALL the items in the buffer
             socket_buffer_readable, _, _ = select.select([client],[],[],0)    
+        '''
 
 
         #run algorithm here:
@@ -131,6 +199,8 @@ def Main():
 
 try:
     Send_string_to_watchdog("watchdog",NODE_NAME)
+    thread = threading.Thread(target=Incoming_messages_handler, args=(variableNameListTemp, variableListTemp, client))
+    thread.start()
     Main()
 except KeyboardInterrupt:
     Send_string_to_watchdog("watchdog", DISCONNECT_MESSAGE)
