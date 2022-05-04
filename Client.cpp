@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <iostream>
 #include "nlohmann/json.hpp"
-#define PORT 1905
+#define PORT 5050
 #define HEADER_SIZE 64
 
 
@@ -79,7 +79,9 @@ int main(int argc, char const* argv[])
 {
 	int sock = 0, valread;
 	struct sockaddr_in serv_addr;
-	char* hello = "Hello from the client";
+	char* hello = "{\"message\":\"l\"}";
+    //Message written in JSON-like format for testing.
+    char* fullmsg = "{\"key\": \"client2\", \"msg\": \"Hello from client1\", \"timestamp\": 1651691756.8724802, \"type\": \"str\"}";
 
 	//Creates the client socket with domain as IPv4 protocol,
 	//type as TCP/IP and the protocol set to the default.
@@ -93,7 +95,7 @@ int main(int argc, char const* argv[])
 	serv_addr.sin_port = htons(PORT);
 
 	//Convert IPv4 and IPv6 addresses from text to binary form.
-	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)
+	if (inet_pton(AF_INET, "127.0.1.1", &serv_addr.sin_addr)
 		<= 0) {
 		printf(
 			"\nInvalid address/ Address not supported \n");
@@ -108,10 +110,9 @@ int main(int argc, char const* argv[])
 		printf("\nConnection Failed \n");
 		return -1;
 	}
-	hello = "Hello from the client and his friend JSON";
-    Client_Send(sock, hello);
+	//hello = "Hello from the client and his friend JSON";
+    Client_Send(sock, fullmsg);
 	printf("Hello message sent\n");
-	Client_Recv(sock);
+	//Client_Recv(sock);
 	return 0;
 }
-
