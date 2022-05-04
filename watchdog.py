@@ -119,6 +119,10 @@ def Handle_client(conn, addr, node_name):
         print(f"[CLOSING THREAD]")
     except ConnectionResetError:
         print(f"Connection to {node_name} lost!")
+        nodes.pop(node_name)
+        conn.close()
+        print(f"[CLOSING THREAD]")
+
 
 
 def Start_server():
