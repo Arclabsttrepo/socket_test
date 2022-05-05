@@ -16,18 +16,19 @@ FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 NODE_NAME = "explore"
 
+#declare varaibles for each quantity you want to receive
 odometry = []
 zed = []
 
-odometryTemp = []
-zedTemp = []
+#place them in a list
+variableList=[None]*2 #where 2 is the amount of variables you have
+#variableList=[odometry, zed]
 
-variableList=[odometry, zed]
-#put in the same order as above
-variableNameListTemp = ["odometry", "zed"]
+#write their names in the same order as above
+#so that these strings can be compared to the key
+#to match message data with variables
+variableNameList = ["odometry", "zed"]
 
-#put in the same order as above
-variableListTemp=[odometryTemp, zedTemp]
 
 # create client socket object
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -105,12 +106,25 @@ def Push_to_node(node_name, msg2):
         quit()
     '''
 
-def Incoming_messages_handler(variableNameListTemp, variableListTemp, client):
+def Incoming_messages_handler(variableNameList, variableList, client):
     while True:
         
         received_message_dict = Receive_string_from_watchdog()
         
-        #look for names of variabes in received msg to store its value
+
+        #look for names of variabes in received message to store its latest value
+        iterator = 0
+        for variableNameIterator in variableNameList:
+            #if variable found in the received message 
+            if received_message_dict['key']==variableNameIterator:
+                #store it in the corresponding variable
+                with lock:
+                    variableList[iterator] = received_message_dict
+            iterator = iterator + 1
+
+
+        #last working code:
+'''        #look for names of variabes in received msg to store its value
         for variableIndex in range(len(variableNameListTemp)):
             #if variable found in the received message
             
@@ -119,77 +133,34 @@ def Incoming_messages_handler(variableNameListTemp, variableListTemp, client):
                 with lock:
                     variableListTemp[variableIndex]=received_message_dict['msg']
                     #print(received_message_dict['msg'])
-                #print(str(variableList[variable_index]))
-
-
-
-
-        '''
-        #is there new data in the receive buffer?
-        socket_buffer_readable, _, _ = select.select([client],[],[],0) #what to do with algortihm that needs data if this doesn't get any?????
-        print(socket_buffer_readable)
-        #if yes:
-        while socket_buffer_readable:
-            
-            received_message_dict = Receive_string_from_watchdog()
-            #look for names of variabes in received msg to store its value
-            for variableIndex in range(len(variableNameListTemp)):
-                #if variable found in the received message
-                
-                if received_message_dict['key']==variableNameListTemp[variableIndex]:
-                    #store it in the corresponding variable
-                    with lock:
-                        variableListTemp[variableIndex]=received_message_dict['msg']
-                    #print(str(variableList[variable_index]))
-
-            
-            if temp['key']=="odometry":
-                print(temp['msg'])
-            elif temp['key']=="zed":
-                print(temp['msg'])                   
-             
-            
-
-            #check again so you can loop until you get ALL the items in the buffer
-            socket_buffer_readable, _, _ = select.select([client],[],[],0)    
-        '''
+                #print(str(variableList[variable_index]))'''
 
 
 def Main():
     # run main code here
     # process robotic algorthm here
     # compute stuff here
-    x = 0
-    y = 0
-    #Push_to_node("client2", "Hello yeah")
+
     while True:
         # update variables at the start of every loop
-        # topic variables and node messages
-        # use Receive_string_from_watchdog()
-
-        #update variables here
 
         with lock:
+            #same order in decleration
+            odometry=variableList[0]
+            zed=variableList[1]
+        print(f"odometry: {odometry}")
+        print(f"zed: {zed}")
+
+        #last working 
+        '''with lock:
             for variableIndex in range(len(variableList)):
                 variableList[variableIndex] = variableListTemp[variableIndex]
     
         for variableIndex in range(len(variableList)):
             print(variableList[variableIndex])
-            print("test")
+            print("test")'''
 
-        '''
-        #is there new data in the receive buffer?
-        socket_buffer_readable, _, _ = select.select([client],[],[],0) #what to do with algortihm that needs data if this doesn't get any?????
-        
-        #if yes:
-        while socket_buffer_readable:
-            Receive_string_from_watchdog()
-            #check again so you can loop until you get ALL the items in the buffer
-            socket_buffer_readable, _, _ = select.select([client],[],[],0)    
-        '''
-
-
-        #run algorithm here:
+ 
         time.sleep(3)
 
 
@@ -199,7 +170,7 @@ def Main():
 
 try:
     Send_string_to_watchdog("watchdog",NODE_NAME)
-    thread = threading.Thread(target=Incoming_messages_handler, args=(variableNameListTemp, variableListTemp, client))
+    thread = threading.Thread(target=Incoming_messages_handler, args=(variableNameList, variableList, client))
     thread.start()
     Main()
 except KeyboardInterrupt:
