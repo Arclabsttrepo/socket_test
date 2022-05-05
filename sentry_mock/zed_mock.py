@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # client
-from curses import init_pair
 import socket
 import time
 import threading
 import pdb
 import conversion
 import pyzed.sl as sl
-import math
-
 
 # define constants:
 HEADER = 64
@@ -24,13 +21,12 @@ NODE_NAME = "zed"
 # create client socket object
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # attempt connection
-'''
 try:
     client.connect(ADDR)
 except ConnectionRefusedError:
     print("[UNABLE TO CONNECT TO WATCHDOG]")
     print("[QUITTING]")
-    quit()'''
+    quit()
 
 # lock object needed to manage access to sockets receiving
 # so far only used for receiving as no other thread is sending
@@ -106,68 +102,34 @@ def Main():
     # run main code here
     # process robotic algorthm here
     # compute stuff here
-
-    image = sl.Mat()
-    depth_map = sl.Mat()
-    point_cloud = sl.Mat()
-
+    z = 0.1
+    y = 0.2
+    x = 0
     
-    runtime_parameters = sl.RuntimeParameters()
-    if zed.grab(runtime_parameters) == sl.ERROR_CODE.SUCCESS:
-        # A new image and depth is available if grab() returns SUCCESS
-        zed.retrieve_image(image, sl.VIEW.LEFT) # Retrieve the left image
-        zed.retrieve_measure(depth_map, sl.MEASURE.DEPTH) # Retrieve depth
-        x = round(image.get_width() / 2)
-        y = round(image.get_height() / 2)  
-        depth_value = depth_map.get_value(x,y)
-        print(depth_value)
-        #print(f"depth at {x},{y}: {depth_value}")
-
-        zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA)
-        x = round(image.get_width() / 2)
-        y = round(image.get_height() / 2)  
-        err, point_cloud_value = point_cloud.get_value(x, y)  
-
-        distance = math.sqrt(point_cloud_value[0] * point_cloud_value[0] + point_cloud_value[1] * point_cloud_value[1] + point_cloud_value[2] * point_cloud_value[2])
-        print(distance)
-    #while True:
+    while True:
         # update variables at the start of every loop
         # topic variables and node messages
         # use Receive_string_from_watchdog()
 
+        #Push_to_node("client2", str(x))
+        z = z + 0.2
+        y = y + 0.1
+        #Push_to_node("client2", str(x))
+
+        Push_to_node("explore", [z,y])
+        time.sleep(1)
+        x = x + 1
+        print(x)
+        #Receive_string_from_watchdog()
 
 
 
 
 
-        #Push_to_node("explore", [z,y])
-        #time.sleep(1)
-
-
-
-zed = sl.Camera()
-
-#Set configuration parameters
-init_params = sl.InitParameters()
-init_params.camera_resolution = sl.RESOLUTION.HD2K
-#init_params.camera_fps=15
-init_params.depth_mode = sl.DEPTH_MODE.ULTRA # Use ULTRA depth mode
-
-
-#print(zed.get_camera_informations().camera_resolution)
-
-#Open the camera
-err = zed.open(init_params)
-if err != sl.ERROR_CODE.SUCCESS:
-    exit(-1)
-
-resolution = zed.get_camera_information().camera_resolution
-print(resolution.height)
 try:
-    #Send_string_to_watchdog("watchdog",NODE_NAME)
+    Send_string_to_watchdog("watchdog",NODE_NAME)
     Main()
 except KeyboardInterrupt:
-    #Send_string_to_watchdog("watchdog", DISCONNECT_MESSAGE)
-    zed.close()
+    Send_string_to_watchdog("watchdog", DISCONNECT_MESSAGE)
 
-#Send_string_to_watchdog("watchdog", DISCONNECT_MESSAGE)
+Send_string_to_watchdog("watchdog", DISCONNECT_MESSAGE)
