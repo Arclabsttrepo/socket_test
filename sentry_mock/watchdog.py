@@ -87,30 +87,12 @@ def Receive_string_from_watchdog():
 # outgoing message handler:
 def Push_to_node(node_name, msg2):
     # send command to server plus node to send message to
-
     Send_string_to_watchdog(node_name, msg2)
-    '''
-    try:
-        # pdb.set_trace()
-        #Send_string_to_watchdog("push:"+msg2)
-        Send_string_to_watchdog("push", node_name, msg2)
-        #temp = Receive_string_from_watchdog()
-        #if temp == "node_found_push_the_data":
 
-        #    Send_string_to_watchdog(msg2)
-            # print(Receive_string_from_watchdog())
-        #else:
-        #    print(f"[{NODE_NAME}] says: Pushing to {node_name} failed!")
-    except AttributeError:
-        print("Incorrect data type sent, recheck")
-        quit()
-    '''
 
 def Incoming_messages_handler(variableNameList, variableList, client):
     while True:
-        
         received_message_dict = Receive_string_from_watchdog()
-        
 
         #look for names of variabes in received message to store its latest value
         iterator = 0
@@ -121,19 +103,6 @@ def Incoming_messages_handler(variableNameList, variableList, client):
                 with lock:
                     variableList[iterator] = received_message_dict
             iterator = iterator + 1
-
-
-        #last working code:
-'''        #look for names of variabes in received msg to store its value
-        for variableIndex in range(len(variableNameListTemp)):
-            #if variable found in the received message
-            
-            if received_message_dict['key']==variableNameListTemp[variableIndex]:
-                #store it in the corresponding variable
-                with lock:
-                    variableListTemp[variableIndex]=received_message_dict['msg']
-                    #print(received_message_dict['msg'])
-                #print(str(variableList[variable_index]))'''
 
 
 def Main():
@@ -150,23 +119,8 @@ def Main():
             zed=variableList[1]
         print(f"odometry: {odometry}")
         print(f"zed: {zed}")
-
-        #last working 
-        '''with lock:
-            for variableIndex in range(len(variableList)):
-                variableList[variableIndex] = variableListTemp[variableIndex]
-    
-        for variableIndex in range(len(variableList)):
-            print(variableList[variableIndex])
-            print("test")'''
-
  
         time.sleep(3)
-
-
-
-
-
 
 try:
     Send_string_to_watchdog("watchdog",NODE_NAME)
