@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/home/uwi/cpp/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -D_DEBUG -I/usr/local/zed/include -I/usr/local/cuda-10.2/include -I/home/uwi/cpp/include  -g   -Wno-write-strings -fpermissive -std=c++14 -O3 -o CMakeFiles/ZED_Depth_Sensing.dir/src/GLViewer.o -c /home/uwi/cpp/src/GLViewer.cpp",
+  "file": "/home/uwi/cpp/src/GLViewer.cpp"
+},
+{
+  "directory": "/home/uwi/cpp/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -D_DEBUG -I/usr/local/zed/include -I/usr/local/cuda-10.2/include -I/home/uwi/cpp/include  -g   -Wno-write-strings -fpermissive -std=c++14 -O3 -o CMakeFiles/ZED_Depth_Sensing.dir/src/main.o -c /home/uwi/cpp/src/main.cpp",
+  "file": "/home/uwi/cpp/src/main.cpp"
+}
+]

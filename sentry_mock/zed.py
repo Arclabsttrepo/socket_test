@@ -117,19 +117,37 @@ def Main():
         # A new image and depth is available if grab() returns SUCCESS
         zed.retrieve_image(image, sl.VIEW.LEFT) # Retrieve the left image
         zed.retrieve_measure(depth_map, sl.MEASURE.DEPTH) # Retrieve depth
-        x = round(image.get_width() / 2)
-        y = round(image.get_height() / 2)  
-        depth_value = depth_map.get_value(x,y)
-        print(depth_value)
-        #print(f"depth at {x},{y}: {depth_value}")
+        
+        width=depth_map.get_width()
+        print(f"width: {width}")
+        height=depth_map.get_height()
+        print(f"height: {height}")
+        #x = round(image.get_width() / 2)
+        #y = round(image.get_height() / 2)
+        count = 0
+        
+        for x in range(width):
+            for y in range(height): 
+                depth_value = depth_map.get_value(x,y)
+                print(depth_value)
+                print
+                count = count +1
+                
+        #print(f"count: {count}")
 
-        zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA)
+
+
+
+
+
+
+'''        zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA)
         x = round(image.get_width() / 2)
         y = round(image.get_height() / 2)  
         err, point_cloud_value = point_cloud.get_value(x, y)  
 
         distance = math.sqrt(point_cloud_value[0] * point_cloud_value[0] + point_cloud_value[1] * point_cloud_value[1] + point_cloud_value[2] * point_cloud_value[2])
-        print(distance)
+        print(distance)'''
     #while True:
         # update variables at the start of every loop
         # topic variables and node messages
