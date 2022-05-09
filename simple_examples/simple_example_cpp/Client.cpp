@@ -6,7 +6,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
-#include "nlohmann/json.hpp"
+//#include "nlohmann/json.hpp"
 #define PORT 5050
 #define HEADER_SIZE 64
 
@@ -95,7 +95,7 @@ int main(int argc, char const* argv[])
 	serv_addr.sin_port = htons(PORT);
 
 	//Convert IPv4 and IPv6 addresses from text to binary form.
-	if (inet_pton(AF_INET, "127.0.1.1", &serv_addr.sin_addr)
+	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)
 		<= 0) {
 		printf(
 			"\nInvalid address/ Address not supported \n");

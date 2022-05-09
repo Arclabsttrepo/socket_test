@@ -5,7 +5,7 @@ import threading
 import pdb
 
 HEADER_SIZE = 64
-PORT = 1905  #The Server port clients will connect to.
+PORT = 5050  #The Server port clients will connect to.
 SERVER = "127.0.0.1" #socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER,PORT)
 FORMAT = 'utf-8'
@@ -22,7 +22,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #Binds the server to the address and port specified above.
 server.bind(ADDR)
 
-#Receives and decodesthe HEADER message from each client, if a HEADER,
+#Receives and decodes the HEADER message from each client, if a HEADER,
 #message is received, then receive and decode the actual mesage.
 #Terminates the connection if the DISCONNECT message is received. 
 def Handle_Client(conn,addr):
