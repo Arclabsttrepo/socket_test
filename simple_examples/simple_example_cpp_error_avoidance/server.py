@@ -1,16 +1,26 @@
 #!/usr/bin/env python
 
+from http import client
+from platform import node
 import socket
 import threading
+import conversion
 import pdb
 
 # Define constants.
 HEADER_SIZE = 13
 PORT = 5050  #The Server port clients will connect to.
-SERVER = "127.0.0.1" #socket.gethostbyname(socket.gethostname())
+SERVER =  socket.gethostbyname(socket.gethostname()) #"127.0.0.1"
 ADDR = (SERVER,PORT)
 FORMAT = 'utf-8'
 DCONN_MSG = "DISCONNECT!"
+
+# Define variables
+topics = []         
+nodes = {}          # A dictionary to store node names
+
+# A locking variable to share variables between threads.
+lock = threading.Lock()
 
 #Creates the server socket with the domain as IPv4 protocol
 #and the type as TCP/IP.
@@ -18,12 +28,69 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #Binds the server to the address and port specified above.
 server.bind(ADDR)
 
+# Converts the message to a JSON string, encodes the message, gets 
+# message length and creates the HEADER message and sends the HEADER
+# message and actual message to the client.
+def Send_To_Client(senderNode, conn, msg):
+    try:
+        # Converts the message to a JSON string using a conversion library.
+        msg_json_string = conversion.Conversion_To_Json(senderNode,msg)
+        # Encodes the message in UTF-8 format.
+        message_utf = msg_json_string.encode(FORMAT)
+        # Creates the HEADER message to be sent by encoding the message
+        # length as a string in UTF-8 format and packing the HEADER with
+        # blank spaces (in UTF-8 notation) to fill the HEADER message with
+        # the no. of bytes the client expects to receive (i.e HEADER_SIZE).
+        msg_length = len(message_utf)
+        send_length = str(msg_length).encode(FORMAT)
+        send_length += b' ' * (HEADER_SIZE - len(send_length))
+        # Sends the HEADER message to the client.
+        conn.send(send_length)
+        # Sends the actual message to the client.
+        conn.send(message_utf)
+        print("[SENDING TO CLIENT] " + str(msg))
+    except:
+        print("ERROR!")
+
+# Sends messages from one client to another using the server.
+def Push(conn, msg, nodeName):
+    try:
+        # Lock so no other threads can access these sockets
+        lock.acquire()   
+        # Store the name of the node being sent to and the message.
+        receiverNode = msg['key']   #Stores the node to send the msg to.
+        msgSent = msg['msg']        #Stores the msg to be sent.
+        # This checks that receiverNode exists in the dictionary. 
+        # That means that the node is alive and connected. 
+        # Else KeyError is raised.
+        node_to_send_to_socket_object = nodes[receiverNode]
+        # Sends message to client.
+        Send_To_Client(nodeName, node_to_send_to_socket_object, msgSent)
+        # unlock so other threads can access these sockets
+        lock.release()
+    except KeyError:
+        # If node not registered with watchdog, this error is thrown.
+        # Unlock so other threads can access these sockets
+        lock.release()
+        print(str(receiverNode)+" not connected")
+
+        #######################################################
+        '''
+        FOR FUTURE:
+         if node not found in dictionary
+         print("Node not found in registered nodes list!")
+         so that node that tried to push can take some action
+         knowing that no data was sent to the requested node
+         #Send_string_to_client(conn, "Node not found in registered nodes list!")
+        '''
+        ######################################################
+
+
 # Receives and decodes the HEADER message from each client, if a HEADER
 # message is received, then receive and decode the actual mesage.
 # Terminates the connection if the DISCONNECT message is received. 
-def Handle_Client(conn,addr):
+def Receive_From_Client(conn,addr):
     try:
-        print(f"[NEW CONNECTION] {addr} connected.")
         connected = True
         # Initialize variables
         msgLength = 0         #Stores the length of the message.
@@ -57,7 +124,7 @@ def Handle_Client(conn,addr):
             # with the no. of bytes to be received set as the message length
             # defined in the HEADER message.
                 msg = conn.recv(msgLength).decode(FORMAT)
-                msg=msg.strip()
+                msg = msg.strip()
                 #If the message sent by the client is the DISCONNECT message,
                 #Terminate and close the connection with the server immediately.
                 if msg == DCONN_MSG:
@@ -65,39 +132,44 @@ def Handle_Client(conn,addr):
                     #Sends an acknowledgement message to the client.
                     #Serv_Send(conn,walt)
                 # Display the address of the client and the message received.    
-                print(f"msg: [{addr}] {msg}")
-
-                msgSession=len(msg)+msgSession
+                print(f"[CLIENT: [{addr}] SAID] {msg}")
+                # Converts the message received to a python dictionary.
+                msgDict = conversion.Json_To_Dict(msg)
+                #
+                msgSession = len(msg)+msgSession
                 print("MSG Session: "+ str(msgSession))
                 if msgSession==msgLength:
-                    msgLength=-1                  
+                    msgLength=-1
+                    return msgDict                  
         conn.close()
     except KeyboardInterrupt:
          print("STOP")
 
-#Encodes messages, gets the message length, creates the header message,
-#which contains the length of the actual message, and sends the header
-#message and actual message to the client, in that order.
-def Serv_Send(conn, servMsg):
+
+# Receives messages from the client after registering with the server.
+def Handle_Client(conn, addr, nodeName):
+    print(f"[NEW CONNECTION] {addr} {nodeName} connected.")
+    connected = True
     try:
-        #Adds a NULL terminator at the end of the message, specifically for
-        #C++ correct intepretation of message.
-        servMsg += "\0"
-        #Encodes the message to be set in UTF-8 format.
-        message = servMsg.encode(FORMAT)
-        #Creates the HEADER message to be sent by encoding the message
-        #length as a string in UTF-8 format and packing the HEADER with
-        #blank spaces (in UTF-8 notation) to fill the HEADER message with
-        #the no. of bytes the client expects to receive (i.e HEADER_SIZE).        
-        servMsglength = len(message)
-        servSendlength = str(servMsglength).encode(FORMAT)
-        servSendlength += b' ' * (HEADER_SIZE - len(servSendlength))
-        #Sends the HEADER message to the client.
-        conn.send(servSendlength)
-        #Sends the actual message to the client.
-        conn.send(message)
-    except:
-        print("ERROR!")
+        while connected:
+            msg = Receive_From_Client(conn,addr)
+            # If the disconnect from watchdog message is received from client
+            # Then deregister node from nodes dictionary and close connection.
+            if msg['key'] == "watchdog" and msg['msg'] == DCONN_MSG:
+                print(f"{nodeName} has disconnected.")
+                nodes.pop(nodeName)
+                connected = False
+            # If the message is not for the watchdog then send to the specified client.    
+            if msg['key'] != "watchdog":
+                Push(conn, msg, nodeName)
+        conn.close()
+        print(f"[CLOSING THREAD]")
+    except ConnectionResetError:
+        print(f"Connection to {nodeName} lost!")
+        #Deregister node from nodes list when connection is lost.
+        nodes.pop(nodeName)
+        conn.close()
+        print(f"[CLOSING THREAD]")
 
 #The server listens for connections, then accepts when a connection is established,
 #and creates a separate thread to handle each client.
@@ -109,15 +181,38 @@ def Start():
         #Accepts a client's connection to the server. It blocks the execution of
         #processes until the connection is established.
         conn, addr = server.accept()
-        #Creates a separate thread to process each client connection in
-        #the Handle_Client function.
-        thread = threading.Thread(target=Handle_Client, args=(conn, addr))
-        thread.start()
-        #Keeps track of the number of clients connected to the server.
-        #MB. A thread is subtracted from the count to exclude the server thread.
-        print(f"[ACTIVE CONNECTIONS] {threading.activeCount() -1}")
+        # Stores the name of the client sending data to the watchdog.
+        clientName = Receive_From_Client(conn,addr)
+        # If a message is received from the client to the watchdog.
+        # then attempt to register the node.
+        if clientName and clientName['key'] == "watchdog":
+            # Ensures only this thread can access nodes variable.
+            lock.acquire()
+            # Store the node name of the client.
+            nodeName = clientName['msg']
+            # If node already exists then close the client connection.
+            if nodeName in nodes:
+                print(f"{nodeName} already registered! Closing connection!")
+                conn.close()
+                #Allows other threads to access the nodes dictionary.
+                lock.release()
+            # If node does not exist then updatte nodes dictionary with
+            # client name and client object.
+            else:
+                nodes.update({nodeName: conn})
+                # Allows other threads to access the nodes dictionary.
+                lock.release()
+                # Creates a separate thread to process each client connection in
+                # the Handle_Client function.
+                thread = threading.Thread(target=Handle_Client, args=(conn, addr, nodeName))
+                thread.start()
+                #Keeps track of the number of clients connected to the server.
+                #NB. A thread is subtracted from the count to exclude the server thread.
+                print(f"[ACTIVE CONNECTIONS] {threading.activeCount() -1}")
+        else:
+            print("[NODE DID NOT REGISTER] Awaiting new connections.")
 
-
+#Main code execution.
 try:
     print("[STARTING] Watchdog is starting...")
     Start()

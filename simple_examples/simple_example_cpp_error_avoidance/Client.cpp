@@ -27,16 +27,18 @@ int Client_Send(int sock, char *buf){
 	//the integer value.
     sendLength = std::to_string(msgLength);
     lengthVal = sendLength.length();
-	//Writes the length of the message to the beginning of the HEADER,
-	//by individually assigning each char to the HEADER from sendLength
+	//Writes the header delimiter to the beginning of the HEADER,
+	//by individually assigning each char to the HEADER.
     temp[0]='[';
 	temp[1]='|';
 	temp[2]=']';
-//Pad first
+	// Add padding to the HEADER message to fill to the size of
+	// HEADER_SIZE.
 	for(int x = 3; x < (HEADER_SIZE); x++){
          temp[x] = '`'; //pad
      }
-int i=0;
+	int i=0;
+	// Add the length of the message by overwritting some of the padding
 	for(int x = 3; x < lengthVal+3; x++){
         temp[x] = sendLength[i];
 		i++;
@@ -89,6 +91,13 @@ void Client_Recv(int sock){
 		return;
 	}
 
+}
+
+char Convert_String_To_Chararray(std::string msg){
+	int msgLen = msg.length();
+	char charArray[msgLen + 1];
+	strcpy(charArray, msg.c_str());
+	//return charArray;
 }
 
 int main(int argc, char const* argv[])
