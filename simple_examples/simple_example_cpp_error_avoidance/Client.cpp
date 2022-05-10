@@ -8,7 +8,7 @@
 #include <iostream>
 //#include "nlohmann/json.hpp"
 #define PORT 5050
-#define HEADER_SIZE 64
+#define HEADER_SIZE 13
 
 
 /*Gets length of the message to be sent, Stores the length in a HEADER,

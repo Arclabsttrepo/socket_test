@@ -4,17 +4,13 @@ import socket
 import threading
 import pdb
 
-HEADER_SIZE = 64
+# Define constants.
+HEADER_SIZE = 13
 PORT = 5050  #The Server port clients will connect to.
 SERVER = "127.0.0.1" #socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER,PORT)
 FORMAT = 'utf-8'
 DCONN_MSG = "DISCONNECT!"
-
-
-walt = "Hello from the super amazing fantastic special Server"
-john = walt.encode(FORMAT)
-
 
 #Creates the server socket with the domain as IPv4 protocol
 #and the type as TCP/IP.
@@ -22,54 +18,59 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #Binds the server to the address and port specified above.
 server.bind(ADDR)
 
-#Receives and decodesthe HEADER message from each client, if a HEADER,
-#message is received, then receive and decode the actual mesage.
-#Terminates the connection if the DISCONNECT message is received. 
+# Receives and decodes the HEADER message from each client, if a HEADER
+# message is received, then receive and decode the actual mesage.
+# Terminates the connection if the DISCONNECT message is received. 
 def Handle_Client(conn,addr):
     try:
         print(f"[NEW CONNECTION] {addr} connected.")
         connected = True
-        #Continue receiving messages from the client while the connection
-        #exists.
-        msgLength=0
-        msgSession=0
+        # Initialize variables
+        msgLength = 0         #Stores the length of the message.
+        msgSession = 0        #Ensures the complete message is received.
+        # Continue receiving messages from the client while the connection
+        # exists.
         while connected:
-            #Receives and decodes the HEADER message sent by the client,
-            #The no. of bytes to be received is set as HEADER_SIZE.
+            # If length of incoming message is unknown then get the HEADER
+            # message to extract the length of the incoming message.
             if msgLength==0:
-                msgRaw = conn.recv(HEADER_SIZE).decode(FORMAT)
-                Q=msgRaw.find("[|]")
-                print(msgRaw)
-                if Q!=-1:
-                    print ("message: "+msgRaw)
-                    #Message is a header    
-                    msgLength = msgRaw.replace("[|]", "")
+                # Receives and decodes the HEADER message sent by the client,
+                # The no. of bytes to be received is set as HEADER_SIZE.
+                header = conn.recv(HEADER_SIZE).decode(FORMAT)
+                # Looks for the header delimiter "[|]" to indicate the start
+                # of the HEADER message.
+                headerDelim = header.find("[|]")
+                # If the delimiter is found then extract the length of the
+                # incoming message
+                if headerDelim != -1:
+                    # Message is a header
+                    # Remove the header delimter ([|]) and padding (`) to 
+                    # extract the length of the incoming message.
+                    msgLength = header.replace("[|]", "")
                     msgLength = msgLength.replace("`", "")
+                    # Store the length of the message
                     msgLength = int(msgLength)
-                    print ("msglngth: "+ str(msgLength))
+            # If length of incoming message is known then prepare to
+            # receive the message.
             if msgLength>0:
-                print("msglengthData: "+str(msgLength))
+            # Receive and decode the actual message from the client
+            # with the no. of bytes to be received set as the message length
+            # defined in the HEADER message.
                 msg = conn.recv(msgLength).decode(FORMAT)
                 msg=msg.strip()
-                print(msg)
                 #If the message sent by the client is the DISCONNECT message,
                 #Terminate and close the connection with the server immediately.
                 if msg == DCONN_MSG:
                     break
                     #Sends an acknowledgement message to the client.
                     #Serv_Send(conn,walt)
-                print(f",msg: [{addr}] {msg}")
+                # Display the address of the client and the message received.    
+                print(f"msg: [{addr}] {msg}")
+
                 msgSession=len(msg)+msgSession
                 print("MSG Session: "+ str(msgSession))
                 if msgSession==msgLength:
-                    msgLength=-1
-                    msgSession=0
-            #If the HEADER message is received, then convert the HEADER message
-            #to an integer, receive and decode the actual message from the client
-            #with the no. of bytes to be received set as the integer defined 
-            #in the HEADER message.
-            #msgLength = msgLength.decode('utf-8')
-                    
+                    msgLength=-1                  
         conn.close()
     except KeyboardInterrupt:
          print("STOP")

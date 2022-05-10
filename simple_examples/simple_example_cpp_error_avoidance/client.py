@@ -5,8 +5,8 @@ import json
 
 
 #CONSTANTS
-HEADER_SIZE = 64
-PORT = 1905 #Port to connect to Server.
+HEADER_SIZE = 13
+PORT = 5050 #Port to connect to Server.
 SERVER = "127.0.0.1" #socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
@@ -24,21 +24,32 @@ client.connect(ADDR)
 #to receive a response from the server.
 def Send(msg):
     try:
-        #Encodes the messsage to be set in UTF-8 format.
+        headerDelim = "[|]"
+        escChar = "`"
         message = msg.encode(FORMAT)
-        #Stores the message length.
+        print(message)
         msgLength = len(message)
+        header = headerDelim + str(msgLength)
+        print(msgLength)
+        header += escChar * (HEADER_SIZE - (len(str(msgLength))+3))
+        header = header.encode(FORMAT)
+        print(header)
+        ###############################################
+        #Encodes the messsage to be set in UTF-8 format.
+        #message = msg.encode(FORMAT)
+        #Stores the message length.
+        #msgLength = len(message)
         #Creates the HEADER message to be sent by encoding the message
         #length as a string in UTF-8 format and packing the HEADER with
         #blank spaces (in UTF-8 notation) to fill the HEADER message with
         #the no. of bytes the server expects to receive (i.e HEADER_SIZE).
-        sendLength = str(msgLength).encode(FORMAT)
-        sendLength += b' ' * (HEADER_SIZE - len(sendLength))
+        #sendLength = str(msgLength).encode(FORMAT)
+        #sendLength += b' ' * (HEADER_SIZE - len(sendLength))
         #Sends the HEADER message to the server.
-        client.send(sendLength)
+        client.send(header)
         #Sends the actual message to the server.
         client.send(message)
-        Receive()
+        #Receive()
     except:
         print("ERROR!")
 
@@ -62,7 +73,7 @@ def Receive():
         print("ERROR!")
 
 
-dict = {"datatype": "int32", "data": [40,32,24,16,8,0,1,2,3,4,5,6,7,8,9,10,11,12], "identifier": "A1"}
+dict = {"datatype": "int32", "dta": [40,32,24,16,8,0,1,2,3,4,5,6,7,8,9,10,11,12], "identifier": "A1"}
 walt = "Hello"
 jason = json.dumps(dict)
 time.sleep(5)
