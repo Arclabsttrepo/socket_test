@@ -40,6 +40,7 @@ def Send(destNode, msg):
     try:
         headerDelim = "[|]"     #Stores the header delimiter that appears at the start of a message.
         escChar = "`"           #An escape character used to pad the HEADER message.
+        # Converts the message to a JSON string using a conversion library.
         jsonMsg = conversion.Conversion_To_Json(destNode, msg)
         # Encodes the message in UTF-8 format.
         message = jsonMsg.encode(FORMAT)
@@ -58,24 +59,45 @@ def Send(destNode, msg):
     except:
         print("ERROR!")
 
-#Receives and decodes the HEADER  message from the client, if a HEADER
-#message is received, then receive and decode the actual message.
+# Receives and decodes the HEADER  message from the client, if a HEADER
+# message is received, then receive and decode the actual message.
 def Receive():
     try:
-        #Receives and decodes the HEADER message sent by the server.
-        #The no. of bytes to be received is set as HEADER_SIZE.
-        servMsglength = client.recv(HEADER_SIZE).decode(FORMAT)
-        #If the HEADER message is received, then convert the HEADER message
-        #to an integer, receive and decode the actual message from the server
-        #with the no. of bytes to be received set as the integer defined 
-        #in the HEADER message.
-        if servMsglength:
-            servMsglength = int(servMsglength)
-            servMsg = client.recv(servMsglength).decode(FORMAT)
-            print(servMsg)
-            print(len(servMsg))
+        msgLength = 0         #Stores the length of the message.
+        msgSession = 0        #Ensures the complete message is received.
+        # If length of incoming message is unknown then get the HEADER
+        # message to extract the length of the incoming message.
+        if msgLength==0:
+            # Receives and decodes the HEADER message sent by the client,
+            # The no. of bytes to be received is set as HEADER_SIZE.
+            header = client.recv(HEADER_SIZE).decode(FORMAT)
+            # Looks for the header delimiter "[|]" to indicate the start
+            # of the HEADER message.
+            headerDelim = header.find("[|]")
+            # If the delimiter is found then extract the length of the
+            # incoming message
+            if headerDelim != -1:
+                # Message is a header
+                # Remove the header delimter ([|]) and padding (`) to 
+                # extract the length of the incoming message.
+                msgLength = header.replace("[|]", "")
+                msgLength = msgLength.replace("`", "")
+                # Store the length of the message
+                msgLength = int(msgLength)
+        if msgLength>0:
+        # Receive and decode the actual message from the client
+        # with the no. of bytes to be received set as the message length
+        # defined in the HEADER message.
+            msg = client.recv(msgLength).decode(FORMAT)
+            print(time.time())
+            msg = msg.strip()
+            # Converts the message received to a python dictionary.
+            msgDict = conversion.Json_To_Dict(msg)
+            print("[WATCHDOG SAID] " + str(msg))
+            msgLength = -1
+            return msgDict
     except:
-        print("ERROR!")
+        print("ERRRRROR!")
 
 def Push(nodeName, msg):
     Send(nodeName, msg)
@@ -83,8 +105,8 @@ def Push(nodeName, msg):
 def Main():
     while True:
         #dict = {"datatype": "int32", "dta": [40,32,24,16,8,0,1,2,3,4,5,6,7,8,9,10,11,12], "identifier": "A1"}
-        dict = "rajeev"
-        time.sleep(5)
+        dict = "rajeevharripaul"
+        time.sleep(3)
         Push("client1", dict)
         Receive()
         break
@@ -96,8 +118,5 @@ try:
     Main()
 except KeyboardInterrupt:
     Send("watchdog", DCONN_MSG)
-#walt = "Hello"
-#jason = json.dumps(dict)
-#time.sleep(5)
-#Send(jason)
+
 Send("watchdog",DCONN_MSG)

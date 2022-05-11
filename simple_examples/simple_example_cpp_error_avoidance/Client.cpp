@@ -9,20 +9,26 @@
 //#include "nlohmann/json.hpp"
 #define PORT 5050
 #define HEADER_SIZE 13
-
+#define NODE_NAME = "client3"
+#define DCONN_MSG = "DISCONNECT!"
 
 /*Gets length of the message to be sent, Stores the length in a HEADER,
 Fills the HEADER with blank spaces to meet the set HEADER_SIZE,
 Sends the HEADER message to the server and then sends the actual message
 to the server.
 */
-int Client_Send(int sock, char *buf){
+int Client_Send(int sock, std::string msg){
+	int n = msg.length();
+    // declaring character array
+    char char_array[n + 1];
+    // copying the contents of the string to char array
+    strcpy(char_array, msg.c_str());
 	//stores the HEADER message
     char temp[HEADER_SIZE] = "";
     int msgLength, lengthVal = 0;
     std::string sendLength = "";
 	//stores the length of the actual message in msgLength. 
-    msgLength = strlen(buf);
+    msgLength = strlen(char_array);
 	//converts the message length to a string to get the length of 
 	//the integer value.
     sendLength = std::to_string(msgLength);
@@ -53,14 +59,14 @@ int Client_Send(int sock, char *buf){
 	 std::cout<<std::endl;
 
 	 for (int x=0; x!=msgLength; x++){
-	 	std::cout<<buf[x]; 
+	 	std::cout<<char_array[x]; 
 	 }
 	std::cout<<std::endl;
 	//Sends the HEADER message to the server, so that the server knows
 	//the length of the actual incoming message.
     send(sock,temp, strlen(temp), 0);
 	//Sends the actual message to the server.
-    send(sock, buf, strlen(buf), 0);
+    send(sock, char_array, strlen(char_array), 0);
 }
 
 /*
@@ -70,13 +76,18 @@ to receive the actual message with the no. of bytes to be received set
 to msgLength.
 */
 void Client_Recv(int sock){
-	int msgLength, valRead, msgRead = 0;
+	int msgLength = 0;
+	int valRead = 0;
+	int msgRead = 0;
 	char header[HEADER_SIZE];
+	std::string headerMsg;
 	char servMsg[1024];
 	//Receives the HEADER message from the server and stores the
 	//message in header, with the number of bytes received set to 
 	//HEADER_SIZE.
 	valRead = recv(sock, header, HEADER_SIZE, 0);
+	headerMsg = header;
+	
 	//Converts the HEADER message from a char array to an integer.
 	msgLength = std::strtol(header, nullptr, 10);
 	//If the HEADER  message is received, then receive the actual 
@@ -93,30 +104,13 @@ void Client_Recv(int sock){
 
 }
 
-char Convert_String_To_Chararray(std::string msg){
-	int msgLen = msg.length();
-	char charArray[msgLen + 1];
-	strcpy(charArray, msg.c_str());
-	//return charArray;
-}
 
 int main(int argc, char const* argv[])
 {
 	int sock = 0, valread;
 	struct sockaddr_in serv_addr;
 
-	//char hello[10] = "ABC";
 	std::string attempt="{\"key\": \"client2\", \"msg\": \"Hello from client1\", \"timestamp\": 1651691756.8724802, \"type\": \"str\"}";
-
-	int n = attempt.length();
-    // declaring character array
-    char char_array[n + 1];
-    // copying the contents of the
-    // string to char array
-    strcpy(char_array, attempt.c_str());
-
-    //Message written in JSON-like format for testing.
-    //char* fullmsg = "{\"key\": \"client2\", \"msg\": \"Hello from client1\", \"timestamp\": 1651691756.8724802, \"type\": \"str\"}";
 
 	//Creates the client socket with domain as IPv4 protocol,
 	//type as TCP/IP and the protocol set to the default.
@@ -130,7 +124,7 @@ int main(int argc, char const* argv[])
 	serv_addr.sin_port = htons(PORT);
 
 	//Convert IPv4 and IPv6 addresses from text to binary form.
-	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)
+	if (inet_pton(AF_INET, "127.0.1.1", &serv_addr.sin_addr)
 		<= 0) {
 		printf(
 			"\nInvalid address/ Address not supported \n");
@@ -145,8 +139,8 @@ int main(int argc, char const* argv[])
 		printf("\nConnection Failed \n");
 		return -1;
 	}
-	//hello = "Hello from the client and his friend JSON";
-    Client_Send(sock, char_array);
+
+    Client_Send(sock, attempt);
 	printf("Hello message sent\n");
 	//Client_Recv(sock);
 	return 0;

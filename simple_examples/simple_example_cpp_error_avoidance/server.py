@@ -33,21 +33,23 @@ server.bind(ADDR)
 # message and actual message to the client.
 def Send_To_Client(senderNode, conn, msg):
     try:
+        headerDelim = "[|]"     #Stores the header delimiter that appears at the start of a message.
+        escChar = "`"           #An escape character used to pad the HEADER message.        
         # Converts the message to a JSON string using a conversion library.
-        msg_json_string = conversion.Conversion_To_Json(senderNode,msg)
+        jsonMsg = conversion.Conversion_To_Json(senderNode,msg)
         # Encodes the message in UTF-8 format.
-        message_utf = msg_json_string.encode(FORMAT)
-        # Creates the HEADER message to be sent by encoding the message
-        # length as a string in UTF-8 format and packing the HEADER with
-        # blank spaces (in UTF-8 notation) to fill the HEADER message with
-        # the no. of bytes the client expects to receive (i.e HEADER_SIZE).
-        msg_length = len(message_utf)
-        send_length = str(msg_length).encode(FORMAT)
-        send_length += b' ' * (HEADER_SIZE - len(send_length))
+        messageUTF = jsonMsg.encode(FORMAT)
+        # Stores the length of the message.
+        msgLength = len(messageUTF)
+        # Add the delimiter and message length to the HEADER message.
+        header = headerDelim + str(msgLength)
+        # Pads the HEADER message to meet the length of HEADER_SIZE.
+        header += escChar * (HEADER_SIZE - (len(str(msgLength))+3))
+        header = header.encode(FORMAT)        
         # Sends the HEADER message to the client.
-        conn.send(send_length)
+        conn.send(header)
         # Sends the actual message to the client.
-        conn.send(message_utf)
+        conn.send(messageUTF)
         print("[SENDING TO CLIENT] " + str(msg))
     except:
         print("ERROR!")
