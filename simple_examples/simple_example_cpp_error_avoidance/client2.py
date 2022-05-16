@@ -36,12 +36,12 @@ lock = threading.Lock()
 # A header message is of the form below
 # (headerdelimiter)(messagelength)(padding)
 # eg. [|]3`````````
-def Send(destNode, msg):
+def Send(destNode, id, msg):
     try:
         headerDelim = "[|]"     #Stores the header delimiter that appears at the start of a message.
         escChar = "`"           #An escape character used to pad the HEADER message.
         # Converts the message to a JSON string using a conversion library.
-        jsonMsg = conversion.Conversion_To_Json(destNode, msg)
+        jsonMsg = conversion.Conversion_To_Json(destNode, id, msg)
         # Encodes the message in UTF-8 format.
         message = jsonMsg.encode(FORMAT)
         # Stores the length of the message.
@@ -99,24 +99,24 @@ def Receive():
     except:
         print("ERRRRROR!")
 
-def Push(nodeName, msg):
-    Send(nodeName, msg)
+def Push(nodeName, id, msg):
+    Send(nodeName, id, msg)
 
 def Main():
     while True:
         #dict = {"datatype": "int32", "dta": [40,32,24,16,8,0,1,2,3,4,5,6,7,8,9,10,11,12], "identifier": "A1"}
         dict = "rajeevharripaul"
-        time.sleep(3)
-        Push("client1", dict)
+        time.sleep(5)
+        Push("client1", "topic2",dict)
         Receive()
         break
 
 
-Send("watchdog", NODE_NAME)
+Send("watchdog", "blank", NODE_NAME)
 
 try:
     Main()
 except KeyboardInterrupt:
-    Send("watchdog", DCONN_MSG)
+    Send("watchdog", "blank", DCONN_MSG)
 
-Send("watchdog",DCONN_MSG)
+Send("watchdog","blank", DCONN_MSG)

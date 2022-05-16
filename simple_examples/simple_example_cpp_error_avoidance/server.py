@@ -36,7 +36,7 @@ def Send_To_Client(senderNode, conn, msg):
         headerDelim = "[|]"     #Stores the header delimiter that appears at the start of a message.
         escChar = "`"           #An escape character used to pad the HEADER message.        
         # Converts the message to a JSON string using a conversion library.
-        jsonMsg = conversion.Conversion_To_Json(senderNode,msg)
+        jsonMsg = conversion.Conversion_To_Json(senderNode,"topic3",msg)
         # Encodes the message in UTF-8 format.
         messageUTF = jsonMsg.encode(FORMAT)
         # Stores the length of the message.

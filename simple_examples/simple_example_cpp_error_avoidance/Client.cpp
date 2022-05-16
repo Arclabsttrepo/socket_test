@@ -6,23 +6,27 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
-//#include "nlohmann/json.hpp"
+#include <algorithm>
+#include <string>
+#include "newconversioncpp.h"
 #define PORT 5050
 #define HEADER_SIZE 13
-#define NODE_NAME = "client3"
-#define DCONN_MSG = "DISCONNECT!"
+#define NODE_NAME "client3"
+#define DCONN_MSG "DISCONNECT!"
 
 /*Gets length of the message to be sent, Stores the length in a HEADER,
 Fills the HEADER with blank spaces to meet the set HEADER_SIZE,
 Sends the HEADER message to the server and then sends the actual message
 to the server.
 */
-int Client_Send(int sock, std::string msg){
-	int n = msg.length();
+int Client_Send(int sock, std::string nodeName, std::string msg){
+	std::string jsonMsg;
+	jsonMsg = Convert_to_json(nodeName, "topic", msg);
+	int n = jsonMsg.length();
     // declaring character array
     char char_array[n + 1];
     // copying the contents of the string to char array
-    strcpy(char_array, msg.c_str());
+    strcpy(char_array, jsonMsg.c_str());
 	//stores the HEADER message
     char temp[HEADER_SIZE] = "";
     int msgLength, lengthVal = 0;
@@ -82,17 +86,31 @@ void Client_Recv(int sock){
 	char header[HEADER_SIZE];
 	std::string headerMsg;
 	char servMsg[1024];
-	//Receives the HEADER message from the server and stores the
-	//message in header, with the number of bytes received set to 
-	//HEADER_SIZE.
-	valRead = recv(sock, header, HEADER_SIZE, 0);
-	headerMsg = header;
-	
-	//Converts the HEADER message from a char array to an integer.
-	msgLength = std::strtol(header, nullptr, 10);
-	//If the HEADER  message is received, then receive the actual 
-	//message from the server and store in servMsg, with the number
-	//of bytes to be received set as msgLength.
+	if (msgLength == 0){
+		//Receives the HEADER message from the server and stores the
+		//message in header, with the number of bytes received set to 
+		//HEADER_SIZE.
+		valRead = recv(sock, header, HEADER_SIZE, 0);
+
+		headerMsg = header;
+		headerMsg.erase(std::remove(headerMsg.begin(), headerMsg.end(),'`'), headerMsg.end());
+		headerMsg.erase(std::remove(headerMsg.begin(), headerMsg.end(),'['), headerMsg.end());
+		headerMsg.erase(std::remove(headerMsg.begin(), headerMsg.end(),'|'), headerMsg.end());
+		headerMsg.erase(std::remove(headerMsg.begin(), headerMsg.end(),']'), headerMsg.end());
+
+		//Converts the HEADER message from a char array to an integer.
+		msgLength = std::stoi(headerMsg);
+	}
+	if (msgLength > 0){
+		//If the HEADER  message is received, then receive the actual 
+		//message from the server and store in servMsg, with the number
+		//of bytes to be received set as msgLength.
+		msgRead = recv(sock, servMsg, msgLength, 0);
+		std::cout << strlen(servMsg) << std::endl;
+		std::cout << servMsg << std::endl;
+	}
+
+
 	if(header){
 		msgRead = recv(sock, servMsg, msgLength, 0);
 		std::cout << strlen(servMsg) << std::endl;
@@ -108,10 +126,13 @@ void Client_Recv(int sock){
 int main(int argc, char const* argv[])
 {
 	int sock = 0, valread;
+	char header[HEADER_SIZE] = "[|]3````````";
+	std::string headerMsg = "";
+	int msgLength = 0;
 	struct sockaddr_in serv_addr;
 
-	std::string attempt="{\"key\": \"client2\", \"msg\": \"Hello from client1\", \"timestamp\": 1651691756.8724802, \"type\": \"str\"}";
-
+	//std::string attempt="{\"key\": \"client2\", \"msg\": \"Hello from client1\", \"timestamp\": 1651691756.8724802, \"type\": \"str\"}";
+	std::string attempt = "johnathan";
 	//Creates the client socket with domain as IPv4 protocol,
 	//type as TCP/IP and the protocol set to the default.
 	//The if statement checks for errors in creating the socket. 
@@ -139,8 +160,8 @@ int main(int argc, char const* argv[])
 		printf("\nConnection Failed \n");
 		return -1;
 	}
-
-    Client_Send(sock, attempt);
+	Client_Send(sock, "watchdog", NODE_NAME);
+    Client_Send(sock, "client2", attempt);
 	printf("Hello message sent\n");
 	//Client_Recv(sock);
 	return 0;
