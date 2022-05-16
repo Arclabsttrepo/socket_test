@@ -31,12 +31,12 @@ server.bind(ADDR)
 # Converts the message to a JSON string, encodes the message, gets 
 # message length and creates the HEADER message and sends the HEADER
 # message and actual message to the client.
-def Send_To_Client(senderNode, conn, msg):
+def Send_To_Client(senderNode, conn, Id, msg):
     try:
         headerDelim = "[|]"     #Stores the header delimiter that appears at the start of a message.
         escChar = "`"           #An escape character used to pad the HEADER message.        
         # Converts the message to a JSON string using a conversion library.
-        jsonMsg = conversion.Conversion_To_Json(senderNode,"topic3",msg)
+        jsonMsg = conversion.Conversion_To_Json(senderNode,Id,msg)
         # Encodes the message in UTF-8 format.
         messageUTF = jsonMsg.encode(FORMAT)
         # Stores the length of the message.
@@ -61,13 +61,14 @@ def Push(conn, msg, nodeName):
         lock.acquire()   
         # Store the name of the node being sent to and the message.
         receiverNode = msg['key']   #Stores the node to send the msg to.
+        receiverId = msg['identifier']
         msgSent = msg['msg']        #Stores the msg to be sent.
         # This checks that receiverNode exists in the dictionary. 
         # That means that the node is alive and connected. 
         # Else KeyError is raised.
         node_to_send_to_socket_object = nodes[receiverNode]
         # Sends message to client.
-        Send_To_Client(nodeName, node_to_send_to_socket_object, msgSent)
+        Send_To_Client(nodeName, node_to_send_to_socket_object, receiverId, msgSent)
         # unlock so other threads can access these sockets
         lock.release()
     except KeyError:

@@ -105,18 +105,18 @@ def Push(nodeName, id, msg):
 def Main():
     while True:
         #dict = {"datatype": "int32", "dta": [40,32,24,16,8,0,1,2,3,4,5,6,7,8,9,10,11,12], "identifier": "A1"}
-        dict = ["nonsense"]
-        Push(["client2"], ["topic"], dict)
+        dict = "nonsense"
+        Push("client2", "topic", dict)
         time.sleep(1)
         Receive()
         break
 
 
-Send(["watchdog"], ["blank"], NODE_NAME)
+Send("watchdog", "blank", NODE_NAME)
 
 try:
     Main()
 except KeyboardInterrupt:
-    Send(["watchdog"],["blank"],DCONN_MSG)
+    Send("watchdog","blank",DCONN_MSG)
 
-Send(["watchdog"],["blank"],DCONN_MSG)
+Send("watchdog","blank",DCONN_MSG)
