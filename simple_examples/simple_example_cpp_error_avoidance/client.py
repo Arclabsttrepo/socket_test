@@ -91,6 +91,8 @@ def Receive():
             msg = client.recv(msgLength).decode(FORMAT)
             print(time.time())
             msg = msg.strip()
+            #Removes null terminator implemented to handle c++ clients.
+            msg = msg.replace("\0", "")
             # Converts the message received to a python dictionary.
             msgDict = conversion.Json_To_Dict(msg)
             print("[WATCHDOG SAID] " + str(msg))
@@ -102,21 +104,31 @@ def Receive():
 def Push(nodeName, id, msg):
     Send(nodeName, id, msg)
 
+
+#Code in prog---------
+#def Incoming_messages_handler()
+
+
+#Code in prog--------
+
+
 def Main():
     while True:
         #dict = {"datatype": "int32", "dta": [40,32,24,16,8,0,1,2,3,4,5,6,7,8,9,10,11,12], "identifier": "A1"}
-        dict = "nonsense"
-        Push("client2", "topic", dict)
+        dict = ["nonsense", "john"]
+        Push(["client2", "client2"], ["topic", "topic6"], dict)
         time.sleep(1)
+        Receive()
         Receive()
         break
 
 
-Send("watchdog", "blank", NODE_NAME)
+Send("watchdog","blank", NODE_NAME)
+
 
 try:
     Main()
 except KeyboardInterrupt:
-    Send("watchdog","blank",DCONN_MSG)
+    Send("watchdog", "blank", DCONN_MSG)
 
-Send("watchdog","blank",DCONN_MSG)
+Send("watchdog", "blank", DCONN_MSG)

@@ -11,7 +11,7 @@
 #include "newconversioncpp.h"
 #define PORT 5050
 #define HEADER_SIZE 13
-#define NODE_NAME "client3"
+#define NODE_NAME "client4"
 #define DCONN_MSG "DISCONNECT!"
 
 /*Gets length of the message to be sent, Stores the length in a HEADER,
@@ -108,10 +108,8 @@ void Client_Recv(int sock){
 		msgRead = recv(sock, servMsg, msgLength, 0);
 		std::cout << strlen(servMsg) << std::endl;
 		std::cout << servMsg << std::endl;
-		//json object = Json_to_object("{\"key\": \"client2\", \"msg\": \"Hello from client1\", \"timestamp\": 1651691756.8724802, \"type\": \"str\"}");
-		json object = Json_to_object(servMsg);
-		std::cout << "json object :";
-		std::cout << object << std::endl;
+        json object = Json_to_object("words");
+        //std::cout << object << std::endl;
 	}
 
 
@@ -137,7 +135,7 @@ int main(int argc, char const* argv[])
 	json arraytest = json::array();
 	
 	//std::string attempt="{\"key\": \"client2\", \"msg\": \"Hello from client1\", \"timestamp\": 1651691756.8724802, \"type\": \"str\"}";
-	std::string attempt = "johnathan";
+	std::string attempt = "not johnathan";
 	//Creates the client socket with domain as IPv4 protocol,
 	//type as TCP/IP and the protocol set to the default.
 	//The if statement checks for errors in creating the socket. 
@@ -171,15 +169,13 @@ int main(int argc, char const* argv[])
     	Client_Send(sock, "client2", attempt);
 	}*/
 	json keyarray = json::array();
-	keyarray = {"client4", "client4"};
+	keyarray = {"client3", "client3"};
 	json idarray = json::array();
 	idarray = {"topic","topic2"};
 	json msgarray = json::array();
-	msgarray = {attempt, "carl"};
-	sleep(10);
+	msgarray = {attempt, "not carl"};
     Client_Send(sock, keyarray, idarray, msgarray);
 	printf("Hello message sent\n");
-	Client_Recv(sock);
 	Client_Recv(sock);
 	return 0;
 }

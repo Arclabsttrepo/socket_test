@@ -37,6 +37,7 @@ def Send_To_Client(senderNode, conn, Id, msg):
         escChar = "`"           #An escape character used to pad the HEADER message.        
         # Converts the message to a JSON string using a conversion library.
         jsonMsg = conversion.Conversion_To_Json(senderNode,Id,msg)
+        jsonMsg += "\0"
         # Encodes the message in UTF-8 format.
         messageUTF = jsonMsg.encode(FORMAT)
         # Stores the length of the message.
@@ -66,9 +67,12 @@ def Push(conn, msg, nodeName):
         # This checks that receiverNode exists in the dictionary. 
         # That means that the node is alive and connected. 
         # Else KeyError is raised.
-        node_to_send_to_socket_object = nodes[receiverNode]
-        # Sends message to client.
-        Send_To_Client(nodeName, node_to_send_to_socket_object, receiverId, msgSent)
+        i = 0
+        for x in receiverNode:
+            node_to_send_to_socket_object = nodes[receiverNode[i]] #Need an array to iterate thru message
+            # Sends message to client.
+            Send_To_Client(nodeName, node_to_send_to_socket_object, receiverId[i], msgSent[i])
+            i = i + 1
         # unlock so other threads can access these sockets
         lock.release()
     except KeyError:
