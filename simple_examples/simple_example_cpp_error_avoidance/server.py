@@ -32,7 +32,7 @@ server.bind(ADDR)
 # message length and creates the HEADER message and sends the HEADER
 # message and actual message to the client.
 def Send_To_Client(senderNode, conn, Id, msg):
-    try:
+    #try:
         headerDelim = "[|]"     #Stores the header delimiter that appears at the start of a message.
         escChar = "`"           #An escape character used to pad the HEADER message.        
         # Converts the message to a JSON string using a conversion library.
@@ -52,8 +52,8 @@ def Send_To_Client(senderNode, conn, Id, msg):
         # Sends the actual message to the client.
         conn.send(messageUTF)
         print("[SENDING TO CLIENT] " + str(msg))
-    except:
-        print("ERROR!")
+    #except:
+        #print("ERROR!")
 
 # Sends messages from one client to another using the server.
 def Push(conn, msg, nodeName):

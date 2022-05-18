@@ -12,7 +12,21 @@ SERVER = socket.gethostbyname(socket.gethostname()) #"127.0.0.1"
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
 DCONN_MSG = "DISCONNECT!" #Message used to disconnect the client from the server.
-NODE_NAME = "client1"
+NODE_NAME = "explore"
+
+
+#declare varaibles for each quantity you want to receive
+odometry = []
+zed = []
+
+#place them in a list
+variableList=[None]*2 #where 2 is the amount of variables you have
+#variableList=[odometry, zed]
+
+#write their names in the same order as above
+#so that these strings can be compared to the key
+#to match message data with variables
+variableNameList = ["odometry", "zed"]
 
 #Creates the client socket with the domain as IPv4 protocol
 #and the type as TCP/IP.
@@ -89,13 +103,13 @@ def Receive():
         # with the no. of bytes to be received set as the message length
         # defined in the HEADER message.
             msg = client.recv(msgLength).decode(FORMAT)
-            print(time.time())
+            #print(time.time())
             msg = msg.strip()
             #Removes null terminator implemented to handle c++ clients.
             msg = msg.replace("\0", "")
             # Converts the message received to a python dictionary.
             msgDict = conversion.Json_To_Dict(msg)
-            print("[WATCHDOG SAID] " + str(msg))
+            #print("[WATCHDOG SAID] " + str(msg))
             msgLength = -1
             return msgDict
     except:
@@ -104,31 +118,43 @@ def Receive():
 def Push(nodeName, id, msg):
     Send(nodeName, id, msg)
 
+def Incoming_Msg_Handler(variableNameList, variableList):
+    while True:
+        receivedMsg = Receive()
+        #look for names of variables in received message to store its latest value
+        index = 0
+        for variableNameIterator in variableNameList:
+            #if variable found in received message
+            if receivedMsg['key']==variableNameIterator:
+                with lock:
+                    variableList[index] = receivedMsg
+            index = index + 1
 
-#Code in prog---------
-#def Incoming_messages_handler()
-
-
-#Code in prog--------
 
 
 def Main():
+    # run main code here
+    # process robotic algorthm here
+    # compute stuff here
+
     while True:
-        #dict = {"datatype": "int32", "dta": [40,32,24,16,8,0,1,2,3,4,5,6,7,8,9,10,11,12], "identifier": "A1"}
-        dict = ["nonsense", "john"]
-        Push(["client2", "client2"], ["topic", "topic6"], dict)
-        time.sleep(1)
-        Receive()
-        Receive()
-        break
+        # update variables at the start of every loop
 
-
-Send("watchdog","blank", NODE_NAME)
-
+        with lock:
+            #same order in decleration
+            odometry=variableList[0]
+            zed=variableList[1]
+        print(f"odometry: {odometry}")
+        print(f"zed: {zed}")
+ 
+        time.sleep(3)
 
 try:
+    Send("watchdog","blank",NODE_NAME)
+    thread = threading.Thread(target=Incoming_Msg_Handler, args=(variableNameList, variableList))
+    thread.start()
     Main()
 except KeyboardInterrupt:
-    Send("watchdog", "blank", DCONN_MSG)
+    Send("watchdog","blank", DCONN_MSG)
 
 Send("watchdog", "blank", DCONN_MSG)

@@ -12,7 +12,7 @@ SERVER = socket.gethostbyname(socket.gethostname()) #"127.0.0.1"
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
 DCONN_MSG = "DISCONNECT!" #Message used to disconnect the client from the server.
-NODE_NAME = "client2"
+NODE_NAME = "odometry"
 
 #Creates the client socket with the domain as IPv4 protocol
 #and the type as TCP/IP.
@@ -104,23 +104,46 @@ def Receive():
 def Push(nodeName, id, msg):
     Send(nodeName, id, msg)
 
-def Main():
+def Incoming_Msg_Handler(variableNameList, variableList):
     while True:
-        #dict = {"datatype": "int32", "dta": [40,32,24,16,8,0,1,2,3,4,5,6,7,8,9,10,11,12], "identifier": "A1"}
-        dict = ["rajeevharripaul", "waterbender"]
-        #time.sleep(10)
-        Push(["client1", "client1"], ["topic2", "topic10"],dict)
-        Receive()
-        #Receive()
-        #break
+        receivedMsg = Receive()
+        #look for names of variables in received message to store its latest value
+        index = 0
+        for variableNameIterator in variableNameList:
+            #if variable found in received message
+            if receivedMsg['key']==variableNameIterator:
+                with lock:
+                    variableList[index] = receivedMsg
+            index = index + 1
 
 
-Send("watchdog","blank", NODE_NAME)
+def Main():
+    # run main code here
+    # process robotic algorthm here
+    # compute stuff here
+    x = 0
+    #Push_to_node("client2", "Hello yeah")
+    while True:
+        # update variables at the start of every loop
+        # topic variables and node messages
+        # use Receive_string_from_watchdog()
+
+        #Push_to_node("client2", str(x))
+        
+        #Push_to_node("client2", str(x))
+
+        Push(["explore"], ["water"], [[1.0,0.6]])
+        #Receive_string_from_watchdog()
+        x = x + 1
+        print(x)
+        time.sleep(0.1)
+        
+
 
 try:
+    Send("watchdog","blank",NODE_NAME)
     Main()
 except KeyboardInterrupt:
-    Send("watchdog", "blank", DCONN_MSG)
+    Send("watchdog","blank", DCONN_MSG)
 
-Send("watchdog", "blank", DCONN_MSG)
-
+Send("watchdog","blank", DCONN_MSG)

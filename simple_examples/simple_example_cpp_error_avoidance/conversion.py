@@ -8,9 +8,8 @@ def Conversion_To_Json(key,identifier,msg):
    # msgs= [msg]
     testing = msg
     datatypes = []
-    for index,value in enumerate(testing):
+    for value in (testing):
       datatypes.append(str(type(value)))
-   
     temp.update({"key": key})
     temp.update({"identifier": identifier})
     temp.update({"msg": msg})
