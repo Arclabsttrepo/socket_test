@@ -6,16 +6,14 @@ def Conversion_To_Json(key,identifier,msg):
     temp ={}
    # keys =[key]
    # msgs= [msg]
-    testing = msg
-    datatypes = []
-    for value in (testing):
-      datatypes.append(str(type(value)))
+    msgtype = type(msg)
+    if (str(type(msg))=="<class 'list'>"):
+        msgtype = type(msg[0])
     temp.update({"key": key})
     temp.update({"identifier": identifier})
     temp.update({"msg": msg})
     temp.update({"timestamp": currenttime})
-    #temp.update({"type": str(type(msg))})
-    temp.update({"type": datatypes})
+    temp.update({"type": str(msgtype)})
     newstring = json.dumps(temp)
 
     return(newstring)

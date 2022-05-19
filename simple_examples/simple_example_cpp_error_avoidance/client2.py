@@ -132,7 +132,7 @@ def Main():
         
         #Push_to_node("client2", str(x))
 
-        Push(["explore"], ["water"], [[1.0,0.6]])
+        Push(["explore"], ["water"], [[0.5,0.6]])
         #Receive_string_from_watchdog()
         x = x + 1
         print(x)

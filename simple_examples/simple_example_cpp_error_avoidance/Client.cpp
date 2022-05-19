@@ -9,17 +9,27 @@
 #include <algorithm>
 #include <string>
 #include "newconversioncpp.h"
+#include <thread>
+#include <mutex>
 #define PORT 5050
 #define HEADER_SIZE 13
-#define NODE_NAME "client3"
+#define NODE_NAME "explore"
 #define DCONN_MSG "DISCONNECT!"
+
+std::mutex myMutex;
+json odometry = json::array();
+json zed = json::array();
+json variableList = json::array();
+
+std::string variableNameList[2] = {"odometry", "zed"};
+int length = 2;
 
 /*Gets length of the message to be sent, Stores the length in a HEADER,
 Fills the HEADER with blank spaces to meet the set HEADER_SIZE,
 Sends the HEADER message to the server and then sends the actual message
 to the server.
 */
-int Client_Send(int sock, json nodeName, json id, json msg){
+int Send(int sock, json nodeName, json id, json msg){
 	std::string jsonMsg;
 	jsonMsg = Convert_to_json(nodeName, id, msg);
 	int n = jsonMsg.length();
@@ -57,15 +67,15 @@ int Client_Send(int sock, json nodeName, json id, json msg){
 	//the HEADER message is filled with spaces to ensure the server
 	//reads only the header message initially.
      
-	 for (int x=0; x<(HEADER_SIZE); x++){
-	 	std::cout<<temp[x]; 
-	 }
-	 std::cout<<std::endl;
+	//  for (int x=0; x<(HEADER_SIZE); x++){
+	//  	std::cout<<temp[x]; 
+	//  }
+	//  std::cout<<std::endl;
 
-	 for (int x=0; x!=msgLength; x++){
-	 	std::cout<<char_array[x]; 
-	 }
-	std::cout<<std::endl;
+	//  for (int x=0; x!=msgLength; x++){
+	//  	std::cout<<char_array[x]; 
+	//  }
+	// std::cout<<std::endl;
 	//Sends the HEADER message to the server, so that the server knows
 	//the length of the actual incoming message.
     send(sock,temp, strlen(temp), 0);
@@ -79,7 +89,7 @@ length in msgLength. If the HEADER message is received, then prepare
 to receive the actual message with the no. of bytes to be received set
 to msgLength.
 */
-void Client_Recv(int sock){
+json Receive(int sock){
 	int msgLength = 0;
 	int valRead = 0;
 	int msgRead = 0;
@@ -112,18 +122,39 @@ void Client_Recv(int sock){
 		json object = Json_to_object(servMsg);
 		std::cout << "json object :";
 		std::cout << object << std::endl;
+		return object;
 	}
 
 
-	// if(header){
-	// 	msgRead = recv(sock, servMsg, msgLength, 0);
-	// 	std::cout << strlen(servMsg) << std::endl;
-	// 	std::cout << servMsg << std::endl;
-	// }
-	else{
-		return;
+}
+
+void Incoming_Msg_Handler(std::string variableNameList[], json variableList, int sock, int length){
+	json receivedMsg;
+	int index;
+	while (true){
+		receivedMsg = Receive(sock);
+		index = 0;
+		for(int x = 0; x < length; x++){
+			if (receivedMsg["key"]==variableNameList[x]){
+				std::lock_guard<std::mutex> guard(myMutex);
+				variableList = receivedMsg; 
+			}
+		}
+
 	}
 
+}
+
+void True_Main(){
+	while (true){
+		std::lock_guard<std::mutex> guard(myMutex);
+		odometry = variableList[0];
+		zed = variableList[1];
+		std::cout << odometry << std::endl;
+		sleep(3);
+
+		
+	}
 }
 
 
@@ -165,21 +196,27 @@ int main(int argc, char const* argv[])
 		printf("\nConnection Failed \n");
 		return -1;
 	}
-	
-	Client_Send(sock, "watchdog", "blank", NODE_NAME);
-	/*while (true){
-    	Client_Send(sock, "client2", attempt);
-	}*/
-	json keyarray = json::array();
-	keyarray = {"client4", "client4"};
-	json idarray = json::array();
-	idarray = {"topic","topic2"};
-	json msgarray = json::array();
-	msgarray = {attempt, "carl"};
-	sleep(10);
-    Client_Send(sock, keyarray, idarray, msgarray);
-	printf("Hello message sent\n");
-	Client_Recv(sock);
-	Client_Recv(sock);
-	return 0;
+
+
+	Send(sock, "watchdog", "blank", NODE_NAME);
+	std::cout << "error51" << std::endl;
+	std::thread t1(Incoming_Msg_Handler, variableNameList, variableList, sock, length);
+	//std::thread t1(sum, 10, 10);
+	t1.detach();
+	//printf("error61");
+	True_Main();
+
+	// json keyarray = json::array();
+	// keyarray = {"client4", "client4"};
+	// json idarray = json::array();
+	// idarray = {"topic","topic2"};
+	// json msgarray = json::array();
+	// msgarray = {attempt, "carl"};
+	// sleep(10);
+    // Send(sock, keyarray, idarray, msgarray);
+	// printf("Hello message sent\n");
+	// Receive(sock);
+	// Receive(sock);
+	// return 0;
+
 }
