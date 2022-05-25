@@ -2,10 +2,7 @@ from re import S
 import socket
 import threading
 import time
-
-from requests import head
 import conversion
-from math import atan2, atan, pi, cos, sin, sqrt, pow, fabs, copysign
 
 
 #CONSTANTS
@@ -15,34 +12,22 @@ SERVER = socket.gethostbyname(socket.gethostname()) #"127.0.0.1"
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
 DCONN_MSG = "DISCONNECT!" #Message used to disconnect the client from the server.
-NODE_NAME = "controls_act"
+NODE_NAME = "default"
 
-
-#declare varaibles for each quantity you want to receive
-wheelEncoder = {}
-stateMachine = {}
-systemModel = {}
-zedImu = {}
-
-#place them in a list
-variableList=[None]*4 #where 2 is the amount of variables you have
-#variableList=[odometry, zed]
-
-#write their names in the same order as above
-#so that these strings can be compared to the key
-#to match message data with variables
-variableNameList = ["wheelEncoder", "stateMachine", "systemModel", "zedImu"]
 
 #Creates the client socket with the domain as IPv4 protocol
 #and the type as TCP/IP.
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-try:
-    #Establishes a connection to the server at the address and port specified above.
-    client.connect(ADDR)
-except ConnectionRefusedError:
-    print("[UNABLE TO CONNECT TO WATCHDOG]")
-    print("[QUITTING]")
-    quit() 
+def connectClient(address):
+    global client
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        ADDR = address
+        #Establishes a connection to the server at the address and port specified above.
+        client.connect(ADDR)
+    except ConnectionRefusedError:
+        print("[UNABLE TO CONNECT TO WATCHDOG]")
+        print("[QUITTING]")
+        quit() 
 
 # Lock object needed o manage access to sockets
 lock = threading.Lock()
@@ -134,121 +119,3 @@ def Incoming_Msg_Handler(variableNameList, variableList):
                 with lock:
                     variableList[index] = receivedMsg
             index = index + 1
-
-
-
-def Main():
-    # run main code here
-    # process robotic algorthm here
-    # compute stuff here
-    
-    print("CONTROLS HAS STARTED")
-
-    alpha = 0.1
-    kp = 0.1
-    ki = 0.001
-    intek = 0
-
-    #Bounds
-    xerrBound = 0.2 #x range bound
-    yerrBound = 0.1 #y range bound
-    ecludVec = 0.5
-    headingBound = 0.2
-
-    #Operating variables
-    xd = 0
-    yd = 0
-    xk = 0
-    yk = 0
-    wheelRps =[0,0]
-    phik = 0
-    timer = 0
-    phidk = 0
-    exBound = 0.000001
-    eyBound = 0
-    flag = 0
-
-    #Robot parameters
-    ts = 2
-    r = 0.11
-    d = 0.185  
-
-    while True:
-        # update variables at the start of every loop
-
-        with lock:
-            #same order in decleration
-            wheelEncoder = variableList[0]
-            stateMachine = variableList[1]
-            systemModel = variableList[2]
-            zedImu = variableList[3]
-        print(f"wheelEncoder: {wheelEncoder}")
-        print(f"state: {stateMachine}")
-        print(f"systemModel: {systemModel}")
-        print(f"zedImu: {zedImu}")
-
-        if stateMachine is None:
-            xd = 0
-            yd = 0
-        else:
-            xd = stateMachine["msg"][0]
-            yd = stateMachine["msg"][1]
-            flag = stateMachine["msg"][3]
-        if systemModel is None:
-            xk = 0
-            yk = 0
-            phik = 0
-        else:
-            xk = systemModel["msg"][0]
-            yk = systemModel["msg"][1]
-            phik = systemModel["msg"][2]
-        
-        #Develop errors for controls
-        ex = xd - xk
-        ey = yd - yk
-
-        #error bounds to be within goal
-        if fabs(ex) <= xerrBound:
-            ex = exBound
-        if fabs(ey) <= yerrBound:
-            ey = eyBound
-
-        vd = alpha*sqrt(pow(ex,2) + pow(ey,2))
-        phidk = (atan2(ey,ex))
-
-        ephi = phidk - phik
-        intekp = intek + ki*ephi # integral part
-        phicdot = kp*(ephi) + intekp
-
-        #bounded condition for turning
-        if fabs(ephi) > ecludVec:
-            vd  = 0
-        
-        wheelLeft = (2*vd - phicdot*d)/(2*r)
-        wheelRight = (2*vd + phicdot*d)/(2*r)
-        wheelRps[0] = wheelLeft/(2*pi*r)
-        wheelRps[1] = wheelRight/(2*pi*r)
-
-        #We are within a bound of the desired
-        if sqrt(pow(ex,2) + pow(ey,2)) < headingBound:
-            wheelRps[0] = 0
-            wheelRps[1] = 0
-            Push(["state_machine"],["control"], ["NexTraj"])
-            print("xd: "+ str(xd) +" yd: "+ str(yd) +" xk: "+str(xk)+ " yk: "+str(yk)+ " Lw: "+str(wheelRps[0])+ " Rw: "+str(wheelRps[1]))
-
-        #Push(["wheel"], ["rps"], [0,0])
-
-        time.sleep(0.5)
-
-
-
-
-try:
-    Send("watchdog","blank",NODE_NAME)
-    thread = threading.Thread(target=Incoming_Msg_Handler, args=(variableNameList, variableList))
-    thread.start()
-    Main()
-except KeyboardInterrupt:
-    Send("watchdog","blank", DCONN_MSG)
-
-Send("watchdog", "blank", DCONN_MSG)

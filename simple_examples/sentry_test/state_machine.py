@@ -197,10 +197,10 @@ def Main():
                 yd = ydestraj[iter]
             flag = 0
         
-        #Push(["Controls_Act"],["controls"], [[xd,yd,phid,flag]])
+        Push(["controls_act"],["stateMachine"], [[xd,yd,phid,flag]])
         print("xd: "+ str(xd)+ " yd: "+ str(yd)+ " phid: "+ str(phid) +" iter: "+ str(iter))
 
-        time.sleep(0.2)
+        time.sleep(0.5)
 
 try:
     Send("watchdog","blank",NODE_NAME)

@@ -195,7 +195,7 @@ def Main():
         if fabs(phikp) > pi*2:
             phikp = fabs(phikp)-pi*2
 
-        print("xk: "+ str(wheelLeftVel)+ " yk: "+str(ykp)+ " phik: "+str(phikp))
+        print("xk: "+ str(xkp)+ " yk: "+str(ykp)+ " phik: "+str(phikp))
 
         #Set next values
         xk = xkp
@@ -203,9 +203,10 @@ def Main():
         phik = phikp
 
         state_vector=[xk,yk,phik]
-        #Push(["undefined"],["undefined"], [state_vector])
+        Push(["state_machine", "controls_act"],["state", "systemModel"], [state_vector, state_vector])
+        #Push(["controls_act"],["systemModel"], [state_vector])
 
-        time.sleep(1)
+        time.sleep(0.5)
 
 
 
