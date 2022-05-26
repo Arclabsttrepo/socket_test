@@ -5,7 +5,6 @@ from platform import node
 import socket
 import threading
 import conversion
-import pdb
 
 # Define constants.
 HEADER_SIZE = 13
@@ -22,11 +21,14 @@ nodes = {}          # A dictionary to store node names
 # A locking variable to share variables between threads.
 lock = threading.Lock()
 
-#Creates the server socket with the domain as IPv4 protocol
-#and the type as TCP/IP.
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#Binds the server to the address and port specified above.
-server.bind(ADDR)
+def connectServer(address):
+    global server
+    ADDR =  address
+    #Creates the server socket with the domain as IPv4 protocol
+    #and the type as TCP/IP.
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #Binds the server to the address and port specified above.
+    server.bind(ADDR)
 
 # Converts the message to a JSON string, encodes the message, gets 
 # message length and creates the HEADER message and sends the HEADER
@@ -218,11 +220,3 @@ def Start():
                 print(f"[ACTIVE CONNECTIONS] {threading.activeCount() -1}")
         else:
             print("[NODE DID NOT REGISTER] Awaiting new connections.")
-
-#Main code execution.
-try:
-    print("[STARTING] Watchdog is starting...")
-    Start()
-
-except KeyboardInterrupt:
-    print("Stop!")

@@ -1,4 +1,5 @@
 import client
+import time
 import threading
 
 NODE_NAME = "nav"
@@ -80,7 +81,7 @@ def Main():
         #Push(["controls_act"],["stateMachine"], [[xd,yd,phid,flag]])
         print("xd: "+ str(xd)+ " yd: "+ str(yd)+ " phid: "+ str(phid) +" iter: "+ str(iter))
 
-        client.time.sleep(0.5)
+        time.sleep(0.5)
 
 try:
     client.connectClient(ADDR)

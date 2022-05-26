@@ -1,7 +1,6 @@
 from re import S
 import socket
 import threading
-import time
 import conversion
 
 
