@@ -203,12 +203,17 @@ def Main():
         phik = phikp
 
         state_vector=[xk,yk,phik]
-        Push(["state_machine", "controls_act"],["state", "systemModel"], [state_vector, state_vector])
+        #Push(["state_machine", "controls_act"],["state", "systemModel"], [state_vector, state_vector])
+        
+        
         #Push(["controls_act"],["systemModel"], [state_vector])
+        
 
-        time.sleep(0.5)
+        #time.sleep(0.5)
 
-
+        #Testing C++ client5
+        Push(["client5"],["samplemsg"],[1523.25])
+        time.sleep(3)
 
 try:
     Send("watchdog","blank",NODE_NAME)
