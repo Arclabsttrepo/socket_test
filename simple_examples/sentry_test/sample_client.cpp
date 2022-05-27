@@ -13,15 +13,24 @@ int main(){
     json controls;
     json model;
 
+
     int sock = connect(PORT, SERVER);
     Send(sock, "watchdog", "blank", NODE_NAME);
 
     while(true){
-        for(x = 0; x < )
-        
-
         json testobj = Receive(sock);
-        std::cout << testobj["identifier"] <<std::endl;
+        for(int x = 0; x < variableNameList.size(); x++){
+            if(testobj["identifier"]==variableNameList[x]){
+                variableList[x] = testobj; 
+            }
+        }
+
+        controls = variableList[0];
+        model = variableList[1];        
+
+        std::cout << controls <<std::endl;
+        std::cout << model <<std::endl;
+
     }   
 
   

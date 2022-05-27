@@ -212,7 +212,7 @@ def Main():
         #time.sleep(0.5)
 
         #Testing C++ client5
-        Push(["client5"],["samplemsg"],[1523.25])
+        Push(["client5"],["model"],[1523.25])
         time.sleep(3)
 
 try:

@@ -234,12 +234,12 @@ def Main():
             wheelRps[0] = 0
             wheelRps[1] = 0
             #Push(["state_machine"],["control"], ["NexTraj"])
-            Push(["client5"],["samplemsg"],[2500.25])
+            Push(["client5"],["controls"],[2500.25])
             print("xd: "+ str(xd) +" yd: "+ str(yd) +" xk: "+str(xk)+ " yk: "+str(yk)+ " Lw: "+str(wheelRps[0])+ " Rw: "+str(wheelRps[1]))
 
         #Push(["wheel"], ["rps"], [0,0])
 
-        time.sleep(2.9)
+        time.sleep(3)
 
 
 
