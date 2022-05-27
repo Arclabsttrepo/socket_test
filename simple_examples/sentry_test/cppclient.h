@@ -12,7 +12,7 @@
 #include "conversion.h"
 
 #define HEADER_SIZE 13
-#define NODE_NAME "client5"
+#define NODE_NAME "default"
 #define DCONN_MSG "DISCONNECT!"
 
 /*Gets length of the message to be sent, Stores the length in a HEADER,
@@ -54,11 +54,6 @@ int Send(int sock, json nodeName, json id, json msg){
         temp[x] = sendLength[i];
 		i++;
     }
-	//Starting from the (last stored char + 1) to the (HEADER_SIZE - 1), 
-	//the HEADER message is filled with spaces to ensure the server
-	//reads only the header message initially.
-     
-	
 	//Sends the HEADER message to the server, so that the server knows
 	//the length of the actual incoming message.
     send(sock,temp, strlen(temp), 0);
@@ -98,9 +93,6 @@ json Receive(int sock){
 		//message from the server and store in servMsg, with the number
 		//of bytes to be received set as msgLength.
 		msgRead = recv(sock, servMsg, msgLength, 0);
-		std::cout << strlen(servMsg) << std::endl;
-		std::cout << servMsg << std::endl;
-		
 		json object = Json_to_object(servMsg);
 		
 		return object;
