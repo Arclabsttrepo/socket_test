@@ -18,12 +18,6 @@ json convert = {
     
 };
 std::string dumpstr = convert.dump();
-//int n = dumpstr.length();
-//char buffer[n+1];
-//strcpy(buffer, dumpstr.c_str());
-
-//json message = json::parse(buffer);
-//return buffer;
 return dumpstr;
 }
 
