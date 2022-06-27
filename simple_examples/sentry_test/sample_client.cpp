@@ -8,13 +8,13 @@ int main(){
   json variableList = json::array();
   variableList = {};
   json variableNameList = json::array();
-  variableNameList = {"state"};
+  variableNameList = {true,false,true,true};
 
   json state;
 
   int sock = connectClient(PORT, SERVER);
   Send(sock, "watchdog", "blank", NODE_NAME);
-  Send(sock, "watchdog", "blank", "t");
+  Send(sock, "watchdog", "blank", variableNameList);
   Send(sock, "watchdog", "blank", DCONN_MSG);
   // while(true){
   //   variableList = Msg_Handler(variableList, variableNameList,sock);
