@@ -14,13 +14,14 @@ int main(){
 
   int sock = connectClient(PORT, SERVER);
   Send(sock, "watchdog", "blank", NODE_NAME);
+  Send(sock, "watchdog", "blank", "t");
+  Send(sock, "watchdog", "blank", DCONN_MSG);
+  // while(true){
+  //   variableList = Msg_Handler(variableList, variableNameList,sock);
 
-  while(true){
-    variableList = Msg_Handler(variableList, variableNameList,sock);
+  //   state = variableList[0];       
 
-    state = variableList[0];       
-
-  }   
+  // }   
 
 return 0;
 }

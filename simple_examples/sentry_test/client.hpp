@@ -60,6 +60,7 @@ void Send(int sock, json nodeName, json id, json msg){
 	//Sends the actual message to the server.
     send(sock, char_array, strlen(char_array), 0);
 }
+
 //Sends data to a specified client.
 void Push(int sock, json nodeName, json id, json msg){
 	Send(sock, nodeName, id, msg);
@@ -99,7 +100,6 @@ json Receive(int sock){
 		//of bytes to be received set as msgLength.
 		msgRead = recv(sock, servMsg, msgLength, 0);
 		json object = Json_to_object(servMsg);
-		
 		return object;
 	}
 }
@@ -134,7 +134,6 @@ int connectClient(int port, char* server){
 		printf("\nConnection Failed \n");
 		return -1;
 	}
-	
     return sock;
 }
 
@@ -169,4 +168,3 @@ json Msg_Handler(json variableList, json variableNameList, int sock){
 	variableList = tempList;
 	return variableList;
 }
-
